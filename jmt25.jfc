@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Configuracion JFR para el lab.
+  Basada en "profile" pero con los eventos de virtual threads habilitados,
+  que por defecto vienen apagados o con threshold alto.
+
+  Uso:  -XX:StartFlightRecording=settings=jmt25.jfc,filename=out.jfr,dumponexit=true
+-->
+<configuration version="2.0"
+               label="jmt25-lab"
+               description="Virtual threads, pinning y latencias"
+               provider="tevez">
+
+    <!-- ============ Eventos propios del lab ============ -->
+
+    <!-- Uno por tarea. Sin stacktrace: con 20.000 tareas el stacktrace multiplica
+         el tamano del archivo por 20 sin aportar nada. -->
+    <event name="com.tevez.lab.Tarea">
+        <setting name="enabled">true</setting>
+        <setting name="stackTrace">false</setting>
+    </event>
+
+    <!-- Ventana de duracion de cada escenario, para verlos como bloques
+         nombrados en la timeline de JMC. -->
+    <event name="com.tevez.lab.Escenario">
+        <setting name="enabled">true</setting>
+        <setting name="stackTrace">false</setting>
+    </event>
+
+    <!-- ============ Virtual threads: lo que nos interesa ============ -->
+
+    <event name="jdk.VirtualThreadStart">
+        <setting name="enabled">true</setting>
+        <setting name="stackTrace">false</setting>
+    </event>
+
+    <event name="jdk.VirtualThreadEnd">
+        <setting name="enabled">true</setting>
+    </event>
+
+    <!-- El evento clave: cada vez que un virtual thread NO puede desmontarse.
+         En Java 25 con synchronized ya casi no deberia aparecer. Si aparece,
+         mira el stacktrace: casi seguro hay JNI o Object.wait() de por medio. -->
+    <event name="jdk.VirtualThreadPinned">
+        <setting name="enabled">true</setting>
+        <setting name="stackTrace">true</setting>
+        <setting name="threshold">1 ms</setting>
+    </event>
+
+    <!-- El scheduler no pudo aceptar un virtual thread. Sintoma de saturacion. -->
+    <event name="jdk.VirtualThreadSubmitFailed">
+        <setting name="enabled">true</setting>
+        <setting name="stackTrace">true</setting>
+    </event>
+
+    <!-- ============ Bloqueos y esperas ============ -->
+
+    <event name="jdk.ThreadPark">
+        <setting name="enabled">true</setting>
+        <setting name="stackTrace">true</setting>
+        <setting name="threshold">10 ms</setting>
+    </event>
+
+    <event name="jdk.JavaMonitorEnter">
+        <setting name="enabled">true</setting>
+        <setting name="stackTrace">true</setting>
+        <setting name="threshold">10 ms</setting>
+    </event>
+
+    <event name="jdk.JavaMonitorWait">
+        <setting name="enabled">true</setting>
+        <setting name="stackTrace">true</setting>
+        <setting name="threshold">10 ms</setting>
+    </event>
+
+    <!-- Umbral alto a proposito: con 20.000 tareas durmiendo ~100ms, un
+         threshold bajo genera decenas de miles de eventos con stacktrace y la
+         grabacion pesa cientos de MB. La latencia por tarea ya la tenemos en
+         com.tevez.lab.Tarea; aca solo queremos ver las anomalias. -->
+    <event name="jdk.ThreadSleep">
+        <setting name="enabled">true</setting>
+        <setting name="stackTrace">true</setting>
+        <setting name="threshold">500 ms</setting>
+    </event>
+
+    <!-- ============ Hilos del SO y CPU ============ -->
+
+    <event name="jdk.ThreadStart">
+        <setting name="enabled">true</setting>
+        <setting name="stackTrace">true</setting>
+    </event>
+
+    <event name="jdk.ThreadEnd">
+        <setting name="enabled">true</setting>
+    </event>
+
+    <event name="jdk.ExecutionSample">
+        <setting name="enabled">true</setting>
+        <setting name="period">10 ms</setting>
+    </event>
+
+    <event name="jdk.NativeMethodSample">
+        <setting name="enabled">true</setting>
+        <setting name="period">20 ms</setting>
+    </event>
+
+    <event name="jdk.CPULoad">
+        <setting name="enabled">true</setting>
+        <setting name="period">1 s</setting>
+    </event>
+
+    <event name="jdk.ThreadContextSwitchRate">
+        <setting name="enabled">true</setting>
+        <setting name="period">10 s</setting>
+    </event>
+
+    <!-- ============ Memoria ============ -->
+
+    <event name="jdk.ObjectAllocationSample">
+        <setting name="enabled">true</setting>
+        <setting name="throttle">150/s</setting>
+    </event>
+
+    <event name="jdk.GCHeapSummary">
+        <setting name="enabled">true</setting>
+    </event>
+
+    <event name="jdk.YoungGarbageCollection">
+        <setting name="enabled">true</setting>
+    </event>
+
+    <event name="jdk.OldGarbageCollection">
+        <setting name="enabled">true</setting>
+    </event>
+
+</configuration>
