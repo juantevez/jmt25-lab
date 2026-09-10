@@ -1,0 +1,12 @@
+# IDE
+.idea/
+*.iml
+
+# Build
+target/
+
+# Generados por el lab
+recordings/
+resultados.csv
+*.jfr
+hs_err_pid*.log

@@ -1,2 +1,0 @@
-escenario,tareas,duracion_ms,throughput_s,p50,p95,p99,max,hilos_so_pico,heap_mb,errores
-platform-por-tarea,20000,200,99614,98,118,119,120,291,9,0
